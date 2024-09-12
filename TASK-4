@@ -1,0 +1,100 @@
+import pandas as pd
+
+# Load the dataset
+df = pd.read_csv(r"C:\Users\hp\Desktop\us_accidents_dataset.csv")
+
+# Display the first few rows to understand the structure
+print(df.head())
+
+# Check the data types and basic info
+print(df.info())
+
+# Summary statistics for numerical columns
+summary_stats = df.describe()
+print(summary_stats)
+
+# Check for missing values
+missing_values = df.isnull().sum()
+print(missing_values)
+
+# Convert 'Date' to datetime format
+df['Date'] = pd.to_datetime(df['Date'])
+
+# Extract additional time-related columns
+df['Month'] = df['Date'].dt.month
+df['Day_of_Week'] = df['Date'].dt.day_name()
+
+# Convert 'Time' to datetime format and extract hour
+df['Hour'] = pd.to_datetime(df['Time'], format='%H:%M').dt.hour
+
+# Confirm changes
+print(df[['Date', 'Month', 'Day_of_Week', 'Hour']].head())
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Set the visual theme for seaborn
+sns.set_theme(style="whitegrid")
+
+# Accident counts by month
+plt.figure(figsize=(10, 6))
+sns.countplot(x='Month', data=df, palette='viridis')
+plt.title('Number of Accidents by Month')
+plt.xlabel('Month')
+plt.ylabel('Number of Accidents')
+plt.show()
+
+# Accident counts by day of the week
+plt.figure(figsize=(10, 6))
+sns.countplot(x='Day_of_Week', data=df, palette='viridis', order=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+plt.title('Number of Accidents by Day of the Week')
+plt.xlabel('Day of the Week')
+plt.ylabel('Number of Accidents')
+plt.show()
+
+# Accident counts by time of day
+plt.figure(figsize=(10, 6))
+sns.histplot(df['Hour'], bins=24, kde=False, color='purple')
+plt.title('Number of Accidents by Time of Day')
+plt.xlabel('Hour of Day')
+plt.ylabel('Number of Accidents')
+plt.show()
+
+# Severity distribution
+plt.figure(figsize=(8, 6))
+sns.countplot(x='Severity', data=df, palette='coolwarm')
+plt.title('Accident Severity Distribution')
+plt.xlabel('Severity')
+plt.ylabel('Number of Accidents')
+plt.show()
+
+# Weather condition and severity
+plt.figure(figsize=(12, 6))
+sns.countplot(x='Weather_Condition', hue='Severity', data=df, palette='Set2')
+plt.title('Accident Severity by Weather Condition')
+plt.xlabel('Weather Condition')
+plt.ylabel('Number of Accidents')
+plt.xticks(rotation=45)
+plt.show()
+
+# Road condition and severity
+plt.figure(figsize=(12, 6))
+sns.countplot(x='Road_Condition', hue='Severity', data=df, palette='Set1')
+plt.title('Accident Severity by Road Condition')
+plt.xlabel('Road Condition')
+plt.ylabel('Number of Accidents')
+plt.xticks(rotation=45)
+plt.show()
+
+# Analyze the relationships between different factors
+# For example: weather conditions with accident severity, etc.
+# Summarize the key findings in text form after visual inspection and analysis
+
+# Example summary (pseudo-code):
+weather_vs_severity = df.groupby(['Weather_Condition', 'Severity']).size().unstack().fillna(0)
+print(weather_vs_severity)
+
+road_vs_severity = df.groupby(['Road_Condition', 'Severity']).size().unstack().fillna(0)
+print(road_vs_severity)
+
+
