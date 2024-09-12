@@ -1,0 +1,89 @@
+import pandas as pd
+
+# Load the dataset
+file_path = r"C:\Users\hp\Desktop\bank-full.csv"  # Replace with the actual file path
+df = pd.read_csv(file_path, sep=';')
+
+# Display basic information about the dataset
+print(df.info())
+print(df.head())
+
+from sklearn.preprocessing import LabelEncoder
+
+# Separate the features and target variable
+X = df.drop('y', axis=1)
+y = df['y']
+
+# List of categorical columns with binary categories
+binary_cols = ['default', 'housing', 'loan']
+multi_cat_cols = ['job', 'marital', 'education', 'contact', 'month', 'poutcome']
+
+# Label Encoding for binary categorical columns
+label_encoders = {}
+for col in binary_cols:
+    label_encoders[col] = LabelEncoder()
+    X[col] = label_encoders[col].fit_transform(X[col])
+
+# One-Hot Encoding for other categorical columns
+X = pd.get_dummies(X, columns=multi_cat_cols, drop_first=True)
+
+# Encode the target variable
+y = LabelEncoder().fit_transform(y)
+
+# Train-test split
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Check the shape of the processed data
+print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+
+from sklearn.tree import DecisionTreeClassifier
+
+# Initialize the Decision Tree classifier
+dt_classifier = DecisionTreeClassifier(random_state=42)
+
+# Train the model
+dt_classifier.fit(X_train, y_train)
+
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
+
+# Make predictions on the test set
+y_pred = dt_classifier.predict(X_test)
+
+# Evaluate the model
+classification_rep = classification_report(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+roc_auc = roc_auc_score(y_test, dt_classifier.predict_proba(X_test)[:, 1])
+
+print("Classification Report:\n", classification_rep)
+print("Confusion Matrix:\n", conf_matrix)
+print("ROC AUC Score:", roc_auc)
+
+from sklearn.model_selection import GridSearchCV
+
+# Define the parameter grid for hyperparameter tuning
+param_grid = {
+    'criterion': ['gini', 'entropy'],
+    'max_depth': [None, 10, 20, 30, 40, 50],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4]
+}
+
+# Initialize GridSearchCV
+grid_search = GridSearchCV(estimator=dt_classifier, param_grid=param_grid, cv=5, n_jobs=-1, scoring='roc_auc')
+
+# Fit the model
+grid_search.fit(X_train, y_train)
+
+# Get the best model
+best_model = grid_search.best_estimator_
+
+# Evaluate the best model
+y_pred_best = best_model.predict(X_test)
+best_classification_rep = classification_report(y_test, y_pred_best)
+best_conf_matrix = confusion_matrix(y_test, y_pred_best)
+best_roc_auc = roc_auc_score(y_test, best_model.predict_proba(X_test)[:, 1])
+
+print("Best Model Classification Report:\n", best_classification_rep)
+print("Best Model Confusion Matrix:\n", best_conf_matrix)
+print("Best Model ROC AUC Score:", best_roc_auc)
