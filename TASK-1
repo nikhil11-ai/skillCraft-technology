@@ -1,0 +1,56 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+# Define the path to the CSV file
+csv_file_path = r'C:\Users\hp\Desktop\population dataset.csv'
+
+try:
+    # Attempt to load the CSV file, skipping the first few rows if necessary
+    data = pd.read_csv(csv_file_path, skiprows=4, delimiter=',', on_bad_lines='skip')
+
+    # Display the first few rows to verify the data
+    print(data.head())
+
+except pd.errors.ParserError as e:
+    print(f"Error reading the CSV file: {e}")
+
+# Display column names and data types
+print(data.columns)
+print(data.dtypes)
+
+# Check for any missing values
+print(data.isnull().sum())
+
+# Select the relevant columns (adjust '2020' to match your dataset)
+population_2020 = data[['Country Name', '2020']]
+
+# Display the first few rows to verify the selection
+print(population_2020.head())
+
+# Drop rows with missing population data for 2020
+population_2020 = population_2020.loc[population_2020['2020'].notna()]
+
+# Convert the population column to numeric
+population_2020.loc[:, '2020'] = pd.to_numeric(population_2020['2020'], errors='coerce')
+
+# Drop any rows that couldn't be converted to numeric
+population_2020 = population_2020.loc[population_2020['2020'].notna()]
+
+# Sort and select the top 10 countries by population
+top_10_population = population_2020.sort_values(by='2020', ascending=False).head(10)
+
+# Create a bar chart
+plt.figure(figsize=(10, 6))
+plt.barh(top_10_population['Country Name'], top_10_population['2020'], color='skyblue')
+plt.xlabel('Population in 2020')
+plt.title('Top 10 Most Populated Countries in 2020')
+plt.gca().invert_yaxis()  # Invert y-axis to show the highest population at the top
+plt.show()
+
+# Create a histogram of the population distribution
+plt.figure(figsize=(10, 6))
+plt.hist(population_2020['2020'], bins=20, color='skyblue', edgecolor='black')
+plt.xlabel('Population in 2020')
+plt.ylabel('Number of Countries')
+plt.title('Distribution of Population in 2020')
+plt.show()
+
